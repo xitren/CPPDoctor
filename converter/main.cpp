@@ -94,7 +94,7 @@ main(int argv, char const* argc[])
             std::string solution_first  = el.value()["solution_first"];
             std::string solution_second = el.value()["solution_second"];
             std::string solution_third  = el.value()["solution_third"];
-            out << fmt::format("        problem_pool::instance().create_problem(\"{}\", {})", short_desc, error_type)
+            out << fmt::format("        create_problem(\"{}\", {})", short_desc, error_type)
                 << "\n";
             out << fmt::format("            .add_because(\"{}\")", because) << "\n";
             out << fmt::format("            .add_long_desc(\"{}\")", long_desc) << "\n";

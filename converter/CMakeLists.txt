@@ -5,6 +5,7 @@ FetchContent_Declare(
         GIT_TAG v1.0.2
 )
 FetchContent_MakeAvailable(patterns)
+
 FetchContent_Declare(fmt
                      GIT_REPOSITORY https://github.com/fmtlib/fmt.git
                      GIT_TAG master

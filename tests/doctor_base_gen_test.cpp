@@ -8,9 +8,8 @@ __ _(_) |_ _ _ ___ _ _
 
 #define PROBLEM_SOLVERS_PASTE
 #define PROBLEMS 100
-// #define SHORT_PROBLEM_SOLVERS
 
-#include <xitren/problem.hpp>
+#include <xitren/problem_gen.hpp>
 
 #include <gtest/gtest.h>
 
@@ -18,5 +17,6 @@ using namespace xitren;
 
 TEST(base_test, base)
 {
-    problems::create_problem("Simple problem example", problem::error_type::error).add_because("Because");
+    auto problem = problem_pool::get_problem("Some problem 2");
+    EXPECT_TRUE(problem.has_value());
 }
