@@ -24,6 +24,12 @@ public:
     problem(problem&& val)      = default;
 
     auto&
+    index() const
+    {
+        return index_;
+    }
+
+    auto&
     report_as() const
     {
         return report_as_;
