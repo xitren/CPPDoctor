@@ -17,8 +17,6 @@ project(${LIBRARY_NAME}
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(nlohmann_json REQUIRED)
-
 add_library(${LIBRARY_NAME} INTERFACE)
 add_library(${GLOBAL_NAMESPACE}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_compile_options(${LIBRARY_NAME} INTERFACE -std=c++20 -Wc++20-compat)

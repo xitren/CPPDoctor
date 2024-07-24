@@ -12,10 +12,13 @@ FetchContent_Declare(fmt
                      )
 FetchContent_MakeAvailable(fmt)
 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_MakeAvailable(json)
+
 set(_target converter)
 add_executable(${_target} "main.cpp")
 
-target_link_libraries(${_target} nlohmann_json patterns_lib fmt::fmt)
+target_link_libraries(${_target} nlohmann_json::nlohmann_json patterns_lib fmt::fmt)
 target_compile_features(${_target} PUBLIC cxx_std_20)
 target_compile_options(${_target}
                        PRIVATE

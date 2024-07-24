@@ -18,5 +18,5 @@ using namespace xitren;
 
 TEST(base_test, base)
 {
-    problems::create_problem("Simple problem example", problem::error_type::error).add_because("Because");
+    problems.create_problem("Simple problem example", problem::error_type::error).add_because("Because");
 }
