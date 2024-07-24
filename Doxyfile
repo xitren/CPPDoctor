@@ -1,5 +1,5 @@
-PROJECT_NAME            = crc
-INPUT                   = include/xitren/crc_concept.hpp include/xitren/crc8.hpp include/xitren/crc16.hpp
+PROJECT_NAME            = CPPDoctor
+INPUT                   = include/xitren/converter.hpp
 OUTPUT_DIRECTORY        = docs
 OPTIMIZE_OUTPUT_FOR_C   = YES
 GENERATE_LATEX          = NO
