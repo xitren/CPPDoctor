@@ -30,8 +30,9 @@ class locator_pipe : public comm::observer<std::string>, public comm::observable
     using treads_type = std::list<std::shared_ptr<std::jthread>>;
 
 public:
-    locator_pipe()        = default;
-    ~locator_pipe() override{
+    locator_pipe() = default;
+    ~locator_pipe() override
+    {
         for (auto const& thread : treads_) {
             thread->join();
         }
@@ -47,7 +48,7 @@ public:
     locator_pipe(locator_pipe&& val)      = delete;
 
     void
-    data(void const*  /*src*/, std::string const& nd) final
+    data(void const* /*src*/, std::string const& nd) final
     {
         using namespace std::literals;
         if (error_ != nullptr) {
@@ -62,7 +63,8 @@ public:
                         this->notify_observers(item);
                     }
                 } catch (std::system_error& err) {
-                    error_ = std::make_shared<err_type>(fmt::format("{} Error code : {}", err.what(), err.code().value()));
+                    error_
+                        = std::make_shared<err_type>(fmt::format("{} Error code : {}", err.what(), err.code().value()));
                 } catch (std::exception& err) {
                     error_ = std::make_shared<err_type>(fmt::format("{}", err.what()));
                 }
