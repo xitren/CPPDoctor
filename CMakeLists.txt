@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.23)
 
 set(LIBRARY_NAME
     cpp_doctor_lib
@@ -26,6 +26,7 @@ target_include_directories(
 
 message(STATUS "Adding library project \"${LIBRARY_NAME}\"")
 
+add_subdirectory(generator)
 add_subdirectory(converter)
 
 enable_testing()

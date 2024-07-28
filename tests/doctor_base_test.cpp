@@ -10,7 +10,7 @@ __ _(_) |_ _ _ ___ _ _
 #define PROBLEMS 100
 // #define SHORT_PROBLEM_SOLVERS
 
-#include <xitren/problem.hpp>
+#include <xitren/problem_pool.hpp>
 
 #include <gtest/gtest.h>
 
