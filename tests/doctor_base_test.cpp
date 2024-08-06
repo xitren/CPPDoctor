@@ -11,6 +11,7 @@ __ _(_) |_ _ _ ___ _ _
 // #define SHORT_PROBLEM_SOLVERS
 
 #include <xitren/problem_pool.hpp>
+#include <xitren/problems_pool.hpp>
 
 #include <gtest/gtest.h>
 

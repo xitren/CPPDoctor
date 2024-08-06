@@ -22,6 +22,6 @@ foreach (file ${TESTS})
         target_compile_options(${tgt} PRIVATE -Wall -Wextra -Wpedantic -Wc++20-compat -Wno-format-security
                 -Woverloaded-virtual -Wsuggest-override)
     endif ()
-    target_link_libraries(${tgt} PRIVATE ${_target} GTest::gtest GTest::GTest -pthread)
+    target_link_libraries(${tgt} PRIVATE ${GEN_LIBRARY_NAME} GTest::gtest GTest::GTest -pthread)
     gtest_discover_tests(${tgt} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endforeach ()

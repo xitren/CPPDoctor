@@ -9,6 +9,7 @@ __ _(_) |_ _ _ ___ _ _
 #include <nlohmann/json.hpp>
 #include <xitren/comm/observer.hpp>
 #include <xitren/parsers/errors/exceptions.hpp>
+#include <xitren/problem.hpp>
 
 #include <fmt/core.h>
 
@@ -20,22 +21,32 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren::parsers::errors {
 
-struct error_desc {
-    std::string short_desc;
-    std::string report_as;
-    std::string because;
-    std::string long_desc;
-    std::string documented_at;
-    std::string solution1;
-    std::string solution2;
-    std::string solution3;
-};
-
-class parser : public error_desc, public comm::observer<std::list<std::string>> {
+class parser : public comm::observer<std::list<std::string>>, public comm::observable<nlohmann::json> {
     using data_type = std::list<std::string>;
+    using mode      = void (parser::*)(std::string const&);
+
+    struct parser_step {
+        parser_step()  = delete;
+        ~parser_step() = default;
+        parser_step&
+        operator=(parser_step const& other)
+            = delete;
+        parser_step&
+        operator=(parser_step const&& other)
+            = delete;
+        parser_step(parser_step const& val) = default;
+        parser_step(parser_step&& val)      = default;
+
+        parser_step(std::string_view const json, std::string_view const code) : json_tag{json}, code_tag{code} {}
+
+        const std::string_view json_tag;
+        const std::string_view code_tag;
+        std::string            value;
+    };
+    using steps_vault = std::array<parser_step, 10>;
 
 public:
-    parser() = delete;
+    parser() = default;
     ~parser() override { out_ << pool_; }
     parser&
     operator=(parser const& other)
@@ -46,21 +57,6 @@ public:
     parser(parser const& val) = delete;
     parser(parser&& val)      = delete;
 
-    explicit parser(std::string const& name)
-    {
-        std::ifstream in{name};
-        if (in) {
-            nlohmann::json data = nlohmann::json::parse(in);
-            version_            = data["version"];
-            version_++;
-        }
-        pool_["version"] = version_;
-        out_             = std::ofstream{name};
-        if (!out_) {
-            throw std::system_error(errno, std::system_category(), "failed to open " + name);
-        }
-    }
-
     void
     data(void const* /*src*/, data_type const& nd) final
     {
@@ -68,42 +64,54 @@ public:
         for (auto const& line : nd) {
             (this->*mode_)(line);
         }
-        mode_ = &parser::find_short;
+        if ((steps_iter_ + 1) != steps_.end()) {
+            throw unexpected_tag(errno, std::system_category(), "Unexpected end!");
+        }
+        mode_ = &parser::find_first;
         nlohmann::json error;
-        error["type"]            = report_as;
-        error["short_desc"]      = short_desc;
-        error["because"]         = because;
-        error["long_desc"]       = long_desc;
-        error["documented_at"]   = documented_at;
-        error["solution_first"]  = solution1;
-        error["solution_second"] = solution2;
-        error["solution_third"]  = solution3;
-        pool_["problems"].push_back(error);
-        solution3 = solution2 = solution1 = documented_at = long_desc = because = report_as = short_desc = ""s;
+        for (auto& item : steps_) {
+            error[item.json_tag] = item.value;
+        }
+        notify_observers(error);
+        for (auto& item : steps_) {
+            item.value = ""s;
+        }
     }
 
 private:
-    int            version_{};
     nlohmann::json pool_{};
     std::ofstream  out_;
-    void (parser::*mode_)(std::string const&) = &parser::find_short;
+    mode           mode_{&parser::find_first};
 
-    const std::string short_tag_{"@short "};
-    const std::string report_tag_{"@report "};
-    const std::string because_tag_{"@because "};
-    const std::string long_tag_{"@long "};
-    const std::string doc_at_tag_{"@doc_at "};
-    const std::string solution1_tag_{"@solution1 "};
-    const std::string solution2_tag_{"@solution2 "};
-    const std::string solution3_tag_{"@solution3 "};
-    const std::string another_tag_{"@"};
+    // clang-format off
+    steps_vault steps_{{
+                        {problem::short_key, " @short "},
+                        {problem::unique_tag_key, " @unique_tag "},
+                        {problem::module_key, " @module "},
+                        {problem::report_key, " @report "},
+                        {problem::because_key, " @because "},
+                        {problem::long_key, " @long "},
+                        {problem::documented_key, " @doc_at "},
+                        {problem::solution1_key, " @solution1 "},
+                        {problem::solution2_key, " @solution2 "},
+                        {problem::solution3_key, " @solution3 "}
+                       }};
+    // clang-format on
+
+    const std::string     another_tag_{"@"};
+    const std::string     line_tag_{" * "};
+    const std::string     end_tag_{" */"};
+    steps_vault::iterator steps_iter_ = nullptr;
 
     void
-    find_short(std::string const& line)
+    find_first(std::string const& line)
     {
-        if (auto iter = std::string::npos; (iter = line.find(short_tag_)) != std::string::npos) {
-            mode_            = &parser::fill_short;
-            this->short_desc = line.substr(iter + short_tag_.size());
+        auto*       begin = steps_.begin();
+        auto const& tag   = begin->code_tag;
+        if (auto iter = std::string::npos; (iter = line.find(tag)) != std::string::npos) {
+            mode_        = &parser::fill;
+            steps_iter_  = begin;
+            begin->value = line.substr(iter + tag.size());
             return;
         }
         if (line.find(another_tag_) != std::string::npos) {
@@ -112,110 +120,29 @@ private:
     }
 
     void
-    fill_short(std::string const& line)
+    fill(std::string const& line)
     {
-        if (auto iter = std::string::npos; (iter = line.find(report_tag_)) != std::string::npos) {
-            mode_           = &parser::fill_report;
-            this->report_as = line.substr(iter + report_tag_.size());
-            return;
+        auto*       next = steps_iter_ + 1;
+        auto const& tag  = next->code_tag;
+        if (next != steps_.end()) {
+            if (auto iter = std::string::npos; (iter = line.find(tag)) != std::string::npos) {
+                next->value = line.substr(iter + tag.size());
+                steps_iter_++;
+                return;
+            }
         }
         if (line.find(another_tag_) != std::string::npos) {
             throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
         }
-        this->short_desc += " " + line;
-    }
-
-    void
-    fill_report(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(because_tag_)) != std::string::npos) {
-            mode_         = &parser::fill_because;
-            this->because = line.substr(iter + because_tag_.size());
-            return;
+        if (auto iter = std::string::npos; (iter = line.find(line_tag_)) != std::string::npos) {
+            auto pure = line.substr(iter + line_tag_.size());
+            steps_iter_->value += " " + pure;
+            return ;
         }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
+        if (auto iter = std::string::npos; (iter = line.find(end_tag_)) != std::string::npos) {
+            return ;
         }
-        this->report_as += " " + line;
-    }
-
-    void
-    fill_because(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(long_tag_)) != std::string::npos) {
-            mode_           = &parser::fill_long;
-            this->long_desc = line.substr(iter + long_tag_.size());
-            return;
-        }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->because += " " + line;
-    }
-
-    void
-    fill_long(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(doc_at_tag_)) != std::string::npos) {
-            mode_               = &parser::fill_doc_at;
-            this->documented_at = line.substr(iter + doc_at_tag_.size());
-            return;
-        }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->long_desc += " " + line;
-    }
-
-    void
-    fill_doc_at(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(solution1_tag_)) != std::string::npos) {
-            mode_           = &parser::fill_solution1;
-            this->solution1 = line.substr(iter + solution1_tag_.size());
-            return;
-        }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->documented_at += " " + line;
-    }
-
-    void
-    fill_solution1(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(solution2_tag_)) != std::string::npos) {
-            mode_           = &parser::fill_solution2;
-            this->solution2 = line.substr(iter + solution2_tag_.size());
-            return;
-        }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->solution1 += " " + line;
-    }
-
-    void
-    fill_solution2(std::string const& line)
-    {
-        if (auto iter = std::string::npos; (iter = line.find(solution3_tag_)) != std::string::npos) {
-            mode_           = &parser::fill_solution3;
-            this->solution3 = line.substr(iter + solution3_tag_.size());
-            return;
-        }
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->solution2 += " " + line;
-    }
-
-    void
-    fill_solution3(std::string const& line)
-    {
-        if (line.find(another_tag_) != std::string::npos) {
-            throw unexpected_tag(errno, std::system_category(), "Unexpected tag " + another_tag_);
-        }
-        this->solution3 += " " + line;
+        throw unexpected_tag(errno, std::system_category(), "Not found " + line_tag_);
     }
 };
 
