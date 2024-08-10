@@ -10,8 +10,9 @@ __ _(_) |_ _ _ ___ _ _
 #define PROBLEMS 100
 // #define SHORT_PROBLEM_SOLVERS
 
-#include <xitren/problem_pool.hpp>
+#include <xitren/problem_const.hpp>
 #include <xitren/problems_pool.hpp>
+#include <xitren/problems_pool_emb.hpp>
 
 #include <gtest/gtest.h>
 
@@ -19,5 +20,5 @@ using namespace xitren;
 
 TEST(base_test, base)
 {
-    problems.create_problem("Simple problem example", problem::error_type::error).add_because("Because");
+    problems.create_problem("Simple problem example", problem::error_type::error).because("Because");
 }

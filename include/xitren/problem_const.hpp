@@ -13,9 +13,7 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren {
 
-class problems_pool_emb;
-
-class problem {
+class problem_const {
 public:
     static constexpr std::string_view short_key{"short_desc"};
     static constexpr std::string_view unique_tag_key{"unique_tag"};
@@ -34,7 +32,7 @@ public:
     {
         using namespace std::string_literals;
         switch (type) {
-            using enum xitren::problem::error_type;
+            using enum xitren::problem_const::error_type;
         case trace:
             return "TRACE";
         case debug:
@@ -56,7 +54,7 @@ public:
     report_by_desc(std::string_view const& desc)
     {
         using namespace std::string_literals;
-        using enum xitren::problem::error_type;
+        using enum xitren::problem_const::error_type;
         if (desc == "TRACE") {
             return trace;
         }
@@ -78,16 +76,16 @@ public:
         return undefined;
     }
 
-    problem()  = default;
-    ~problem() = default;
-    problem&
-    operator=(problem const& other)
+    problem_const()  = delete;
+    ~problem_const() = default;
+    problem_const&
+    operator=(problem_const const& other)
         = default;
-    problem&
-    operator=(problem&& other)
+    problem_const&
+    operator=(problem_const&& other)
         = default;
-    problem(problem const& val) = default;
-    problem(problem&& val)      = default;
+    problem_const(problem_const const& val) = default;
+    problem_const(problem_const&& val)      = default;
 
     auto&
     report() const
@@ -173,119 +171,36 @@ public:
     {
         return solutions_[2];
     }
-
-    void
-    because(std::string_view const& value)
-    {
-        because_ = value;
-    }
-
-    void
-    long_desc(std::string_view const& value)
-    {
-        long_desc_ = value;
-    }
-
-    void
-    documented_at(std::string_view const& value)
-    {
-        documented_at_ = value;
-    }
-#else
-    auto&
-    because() const
-    {
-        return dummy;
-    }
-
-    auto&
-    long_desc() const
-    {
-        return dummy;
-    }
-
-    auto&
-    documented_at() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution1() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution2() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution3() const
-    {
-        return dummy;
-    }
-
-    void
-    because(std::string_view const& value)
-    {}
-
-    void
-    long_desc(std::string_view const& value)
-    {}
-
-    void
-    documented_at(std::string_view const& value)
-    {}
 #endif
-
-    void
-    clear_solutions()
-    {
-#ifndef SHORT_PROBLEM_SOLVERS
-        solutions_number_ = 0;
-#endif
-    }
-
-    auto&
-    add_solution(std::string_view const& desc)
-    {
-#ifndef SHORT_PROBLEM_SOLVERS
-        if (solutions_number_ >= solutions_.size()) {
-            return *this;
-        }
-        solutions_[solutions_number_++] = desc;
-#endif
-        return *this;
-    }
 
 private:
-    problem(std::string_view const& short_desc, std::string_view const& unique_tag, std::string_view const& module_desc,
+    problem_const(std::string_view const& short_desc, std::string_view const& unique_tag, std::string_view const& module_desc,
             error_type const& report, std::string_view const& because, std::string_view const& long_desc,
-            std::string_view const& documented_at)
+                  std::string_view const& documented_at,
+                  std::string_view const& solution1,
+                  std::string_view const& solution2,
+                  std::string_view const& solution3)
         : short_desc_{short_desc},
           unique_tag_{unique_tag},
           module_desc_{module_desc},
           report_{report},
           because_{because},
           long_desc_{long_desc},
-          documented_at_{documented_at}
+          documented_at_{documented_at},
+          solutions_{solution1, solution2, solution3}
     {}
 
-    std::string short_desc_{};
-    std::string unique_tag_{};
-    std::string module_desc_{};
+    std::string_view short_desc_{};
+    std::string_view unique_tag_{};
+    std::string_view module_desc_{};
     error_type  report_{};
 #ifndef SHORT_PROBLEM_SOLVERS
-    std::string                because_{};
-    std::string                long_desc_{};
-    std::string                documented_at_{};
-    std::size_t                solutions_number_{};
-    std::array<std::string, 3> solutions_{{{}, {}, {}}};
+    std::string_view                because_{};
+    std::string_view                long_desc_{};
+    std::string_view                documented_at_{};
+    std::array<std::string_view, 3> solutions_{{{}, {}, {}}};
 #endif
-    static inline const std::string dummy{};
+    static inline const std::string_view dummy{};
 };
 
 }    // namespace xitren

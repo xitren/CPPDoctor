@@ -12,6 +12,7 @@ __ _(_) |_ _ _ ___ _ _
 #include <iostream>
 #include <map>
 #include <optional>
+#include <unordered_map>
 
 namespace xitren {
 
@@ -41,8 +42,8 @@ public:
     }
 
 private:
-    std::map<std::string, problem> pool_;
-    std::size_t                    version_{};
+    std::unordered_map<std::string, problem> pool_;
+    std::size_t                              version_{};
 };
 
 }    // namespace xitren

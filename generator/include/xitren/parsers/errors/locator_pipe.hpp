@@ -33,9 +33,7 @@ public:
     locator_pipe() = default;
     ~locator_pipe() override
     {
-        for (auto const& thread : treads_) {
-            thread->join();
-        }
+        join();
     }
 
     locator_pipe&
@@ -48,6 +46,15 @@ public:
     locator_pipe(locator_pipe&& val)      = delete;
 
     void
+    join() const {
+        for (auto const& thread : treads_) {
+            if (thread->joinable()) {
+                thread->join();
+            }
+        }
+    }
+
+    void
     data(void const* /*src*/, std::string const& nd) final
     {
         using namespace std::literals;
@@ -57,7 +64,7 @@ public:
         auto thread = std::make_shared<std::jthread>(
             [this](std::string const& name) {
                 try {
-                    auto data = locator::locate(name);
+                    locator data(name);
                     for (auto const& item : data) {
                         std::lock_guard lock{lock_};
                         this->notify_observers(item);

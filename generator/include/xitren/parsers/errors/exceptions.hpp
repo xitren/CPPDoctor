@@ -15,7 +15,14 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren::parsers::errors {
 
-using broken_pipe    = std::runtime_error;
-using unexpected_tag = std::system_error;
+class broken_pipe : public std::runtime_error {
+public:
+    using runtime_error::runtime_error;
+};
+
+class unexpected_tag : public std::system_error {
+public:
+    using system_error::system_error;
+};
 
 }    // namespace xitren::parsers::errors
