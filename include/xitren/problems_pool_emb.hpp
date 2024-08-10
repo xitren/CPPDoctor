@@ -6,10 +6,11 @@ __ _(_) |_ _ _ ___ _ _
 * @date 28.07.2024
 */
 
+#include <xitren/problem_const.hpp>
+
 #include <array>
 #include <iostream>
 #include <optional>
-#include <xitren/problem_const.hpp>
 
 namespace xitren {
 
@@ -22,14 +23,14 @@ public:
         return inst;
     }
 
-    static std::optional<problem>
+    static std::optional<problem_const>
     get_problem(std::string_view const& short_desc)
     {
         auto const hash_id = hash(short_desc);
         for (auto const& problem : instance().vault_) {
-            if (problem.second == hash_id) {
-                if (problem.first->short_desc_ == short_desc) {
-                    return problem.first;
+            if (problem->short_desc_hash == hash_id) {
+                if (problem->short_desc == short_desc) {
+                    return *problem;
                 }
             }
         }
@@ -37,7 +38,7 @@ public:
     }
 
     // clang-format off
-    PROBLEM_DEFINITIONS_PASTE;
+    // PROBLEM_DEFINITIONS_PASTE;
     // clang-format on
 
 private:
@@ -47,10 +48,10 @@ private:
     }
     // clang-format on
 
-    static inline const std::hash<std::string_view>                      hash;
-    std::array<std::pair<std::optional<problem>, std::size_t>, PROBLEMS_COUNTER> vault_{};
+    static inline const std::hash<std::string_view> hash;
+    std::array<problem_const*, PROBLEMS_COUNTER>    vault_{};
 };
 
-auto& problems = problems_pool_emb::instance();
+auto const& problems = problems_pool_emb::instance();
 
 }    // namespace xitren

@@ -31,10 +31,7 @@ class locator_pipe : public comm::observer<std::string>, public comm::observable
 
 public:
     locator_pipe() = default;
-    ~locator_pipe() override
-    {
-        join();
-    }
+    ~locator_pipe() override { join(); }
 
     locator_pipe&
     operator=(locator_pipe const& other)
@@ -46,7 +43,8 @@ public:
     locator_pipe(locator_pipe&& val)      = delete;
 
     void
-    join() const {
+    join() const
+    {
         for (auto const& thread : treads_) {
             if (thread->joinable()) {
                 thread->join();

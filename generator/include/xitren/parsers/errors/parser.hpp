@@ -137,10 +137,10 @@ private:
         if (auto iter = std::string::npos; (iter = line.find(line_tag_)) != std::string::npos) {
             auto pure = line.substr(iter + line_tag_.size());
             steps_iter_->value += " " + pure;
-            return ;
+            return;
         }
         if (auto iter = std::string::npos; (iter = line.find(end_tag_)) != std::string::npos) {
-            return ;
+            return;
         }
         throw unexpected_tag(errno, std::system_category(), "Not found " + line_tag_);
     }
