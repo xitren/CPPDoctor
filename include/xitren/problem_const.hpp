@@ -14,6 +14,16 @@ __ _(_) |_ _ _ ___ _ _
 namespace xitren {
 
 struct problem_const {
+    static constexpr std::string_view short_key{"short_desc"};
+    static constexpr std::string_view unique_tag_key{"unique_tag"};
+    static constexpr std::string_view module_key{"module"};
+    static constexpr std::string_view report_key{"type"};
+    static constexpr std::string_view because_key{"because"};
+    static constexpr std::string_view long_key{"long_desc"};
+    static constexpr std::string_view documented_key{"documented_at"};
+    static constexpr std::string_view solution1_key{"solution_first"};
+    static constexpr std::string_view solution2_key{"solution_second"};
+    static constexpr std::string_view solution3_key{"solution_third"};
     enum class error_type { trace, debug, info, warning, error, critical, undefined };
 
     static std::string_view

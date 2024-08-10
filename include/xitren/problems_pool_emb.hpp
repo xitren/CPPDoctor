@@ -38,7 +38,7 @@ public:
     }
 
     // clang-format off
-    // PROBLEM_DEFINITIONS_PASTE;
+    PROBLEM_DEFINITIONS_PASTE;
     // clang-format on
 
 private:

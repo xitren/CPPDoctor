@@ -7,6 +7,7 @@ __ _(_) |_ _ _ ___ _ _
 */
 #include <nlohmann/json.hpp>
 #include <xitren/func/argv_parser.hpp>
+#include <xitren/problem_const.hpp>
 
 #include <fmt/core.h>
 
@@ -24,6 +25,85 @@ const std::array<std::string_view, 6> error_types = {{{"problem::error_type::tra
                                                       {"problem::error_type::warning"},
                                                       {"problem::error_type::error"},
                                                       {"problem::error_type::critical"}}};
+auto
+convert_from_json(std::size_t id, json el) {
+    std::string short_desc      = el["short_desc"];
+    std::string unique_tag      = el["unique_tag"];
+    std::string module_desc     = el["module"];
+    std::string report          = el["type"];
+    std::string because         = el["because"];
+    std::string long_desc       = el["long_desc"];
+    std::string documented_at   = el["documented_at"];
+    std::string solution_first  = el["solution_first"];
+    std::string solution_second = el["solution_second"];
+    std::string solution_third  = el["solution_third"];
+    
+    return xitren::problem_const{
+        .index           = id,
+        .short_desc_hash = xitren::problem_const::hash(short_desc),
+        .short_desc      = short_desc,
+        .unique_tag      = unique_tag,
+        .module_desc     = module_desc,
+        .report          = xitren::problem_const::report_by_desc(report),
+        .because         = because,
+        .long_desc       = long_desc,
+        .documented_at   = documented_at,
+        .solutions       = {{solution_first, solution_second, solution_third}}
+    };
+}
+
+void find_definitions_paste(std::ifstream& infile, std::ofstream& outfile, json problems) {
+    using namespace std::string_view_literals;
+    std::string   line;
+    while (std::getline(infile, line)) {
+        if (line.find("PROBLEM_DEFINITIONS_PASTE") != std::string::npos) {
+            break;
+        }
+        outfile << line << "\n";
+    }
+    std::size_t id{};
+    for (const auto& el : problems.items()) {
+        id++;
+        xitren::problem_const data = convert_from_json(id, el);
+
+        // clang-format off
+        outfile << fmt::format("        const problem_const {}", data.unique_tag) << " {" << "\n";
+        outfile << fmt::format("            .index           = {},", data.index) << "\n";
+        outfile << fmt::format("            .short_desc_hash = problem_const::hash({}),", data.short_desc) << "\n";
+        outfile << fmt::format("            .short_desc      = {},", data.short_desc) << "\n";
+        outfile << fmt::format("            .unique_tag      = {},", data.unique_tag) << "\n";
+        outfile << fmt::format("            .module_desc     = {},", data.module_desc) << "\n";
+        outfile << fmt::format("            .report          = problem_const::report_by_desc({}),",
+                                xitren::problem_const::report_desc(data.report)) << "\n";
+        outfile << fmt::format("            .because         = {},", data.because) << "\n";
+        outfile << fmt::format("            .long_desc       = {},", data.long_desc) << "\n";
+        outfile << fmt::format("            .documented_at   = {},", data.documented_at) << "\n";
+        outfile << fmt::format("            .solutions       = {{{}, {}, {}}}",
+                                data.solutions[0], data.solutions[1], data.solutions[2]) << "\n";
+        outfile << "        };" << "\n";
+        // clang-format on
+    }
+}
+
+void find_solvers_paste(std::ifstream& infile, std::ofstream& outfile, json problems) {
+    using namespace std::string_view_literals;
+    std::string   line;
+    while (std::getline(infile, line)) {
+        if (line.find("PROBLEM_SOLVERS_PASTE") != std::string::npos) {
+            break;
+        }
+        outfile << line << "\n";
+    }
+    std::size_t id{};
+    for (const auto& el : problems.items()) {
+        id++;
+        auto data = convert_from_json(id, el);
+
+        // clang-format off
+        outfile << fmt::format("        vault_[{}] = &{}", data.index, data.unique_tag) << "\n";
+        // clang-format on
+    }
+}
 
 int
 main(int argv, char const* argc[])
@@ -62,47 +142,10 @@ main(int argv, char const* argc[])
             throw std::system_error(errno, std::system_category(),
                                     "failed to open " + detected_opts.output_header_file);
         }
-
-        while (std::getline(infile, line)) {
-            if (line.find("PROBLEM_SOLVERS_PASTE") != std::string::npos) {
-                break;
-            }
-            out << line << "\n";
-        }
-        for (auto& el : problems.items()) {
-            std::cout << el.key() << " : " << el.value() << "\n";
-            std::string_view error_type;
-            if (el.value()["type"] == "TRACE") {
-                error_type = error_types[0];
-            } else if (el.value()["type"] == "DEBUG") {
-                error_type = error_types[1];
-            } else if (el.value()["type"] == "INFO") {
-                error_type = error_types[2];
-            } else if (el.value()["type"] == "WARNING") {
-                error_type = error_types[3];
-            } else if (el.value()["type"] == "ERROR") {
-                error_type = error_types[4];
-            } else if (el.value()["type"] == "CRITICAL") {
-                error_type = error_types[5];
-            } else {
-                error_type = error_types[4];
-            }
-            std::string short_desc      = el.value()["short_desc"];
-            std::string because         = el.value()["because"];
-            std::string long_desc       = el.value()["long_desc"];
-            std::string documented_at   = el.value()["documented_at"];
-            std::string solution_first  = el.value()["solution_first"];
-            std::string solution_second = el.value()["solution_second"];
-            std::string solution_third  = el.value()["solution_third"];
-            out << fmt::format("        create_problem(\"{}\", {})", short_desc, error_type)
-                << "\n";
-            out << fmt::format("            .add_because(\"{}\")", because) << "\n";
-            out << fmt::format("            .add_long_desc(\"{}\")", long_desc) << "\n";
-            out << fmt::format("            .add_documented_at(\"{}\")", documented_at) << "\n";
-            out << fmt::format("            .add_solution(\"{}\")", solution_first) << "\n";
-            out << fmt::format("            .add_solution(\"{}\")", solution_second) << "\n";
-            out << fmt::format("            .add_solution(\"{}\");", solution_third) << "\n";
-        }
+        
+        find_definitions_paste(infile, out, problems);
+        find_solvers_paste(infile, out, problems);
+        
         while (std::getline(infile, line)) {
             const std::string str = "PROBLEMS";
             if (size_t start = 0; (start = line.find(str)) != std::string::npos) {
