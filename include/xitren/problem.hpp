@@ -27,6 +27,8 @@ public:
     static constexpr std::string_view solution1_key{"solution_first"};
     static constexpr std::string_view solution2_key{"solution_second"};
     static constexpr std::string_view solution3_key{"solution_third"};
+    static constexpr std::string_view filename_key{"filename"};
+    static constexpr std::string_view line_key{"file_line"};
     enum class error_type { trace, debug, info, warning, error, critical, undefined };
 
     static std::string_view

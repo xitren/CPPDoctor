@@ -8,6 +8,7 @@ __ _(_) |_ _ _ ___ _ _
 #pragma once
 
 #include <xitren/comm/observer.hpp>
+#include <xitren/parsers/errors/comment_block.hpp>
 
 #include <fmt/core.h>
 
@@ -19,7 +20,7 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren::parsers::errors {
 
-class locator : public std::list<std::list<std::string>> {
+class locator : public std::list<comment_block> {
 public:
     locator()  = delete;
     ~locator() = default;
@@ -32,7 +33,7 @@ public:
     locator(locator const& val) = delete;
     locator(locator&& val)      = default;
 
-    explicit locator(std::string const& name)
+    explicit locator(std::string const& name) : filename_{name}
     {
         std::ifstream file{name};
         if (!file) {
@@ -40,6 +41,7 @@ public:
         }
         std::string line;
         while (std::getline(file, line)) {
+            line_++;
             (this->*mode_)(line);
         }
     }
@@ -52,11 +54,13 @@ public:
     }
 
 private:
-    std::list<std::string> current_{};
+    comment_block current_{};
     void (locator::*mode_)(std::string const&) = &locator::find_opening;
     const std::string open_tag_{"/**"};
     const std::string middle_tag_{"*"};
     const std::string end_tag_{"*/"};
+    const std::string filename_{};
+    std::size_t       line_{};
 
     void
     find_opening(std::string const& line)
@@ -74,6 +78,8 @@ private:
     {
         if (line.find(end_tag_) != std::string::npos) {
             mode_ = &locator::find_opening;
+            current_.line(line_);
+            current_.filename(filename_);
             this->push_back(current_);
             current_.clear();
             return;

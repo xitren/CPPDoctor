@@ -23,8 +23,8 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren::parsers::errors {
 
-class locator_pipe : public comm::observer<std::string>, public comm::observable<std::list<std::string>> {
-    using data_type   = std::list<std::list<std::string>>;
+class locator_pipe : public comm::observer<std::string>, public comm::observable<comment_block> {
+    using data_type   = std::list<comment_block>;
     using sync_type   = std::mutex;
     using err_type    = std::runtime_error;
     using treads_type = std::list<std::shared_ptr<std::jthread>>;

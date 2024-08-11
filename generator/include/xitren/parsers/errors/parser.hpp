@@ -21,8 +21,8 @@ __ _(_) |_ _ _ ___ _ _
 
 namespace xitren::parsers::errors {
 
-class parser : public comm::observer<std::list<std::string>>, public comm::observable<nlohmann::json> {
-    using data_type = std::list<std::string>;
+class parser : public comm::observer<comment_block>, public comm::observable<nlohmann::json> {
+    using data_type = comment_block;
     using mode      = void (parser::*)(std::string const);
 
     struct parser_step {
@@ -72,6 +72,8 @@ public:
         for (auto& item : steps_) {
             error[item.json_tag] = item.value;
         }
+        error[problem::filename_key] = nd.filename();
+        error[problem::line_key]     = nd.line();
         notify_observers(error);
         for (auto& item : steps_) {
             item.value = ""s;

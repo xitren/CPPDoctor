@@ -38,11 +38,12 @@ public:
     explicit sink(std::string const& name)
     {
         std::ifstream in{name};
-        if (in.is_open()) {
-            nlohmann::json data = nlohmann::json::parse(in);
-            version_            = data["version"];
-            version_++;
+        if (!in) {
+            throw std::system_error(errno, std::system_category(), "failed to open " + name);
         }
+        nlohmann::json data = nlohmann::json::parse(in);
+        version_            = data["version"];
+        version_++;
         pool_["version"] = version_;
         out_             = std::ofstream{name};
         if (!out_) {

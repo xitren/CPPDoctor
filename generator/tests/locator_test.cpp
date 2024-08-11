@@ -25,14 +25,14 @@ using namespace xitren::comm;
 constexpr int number_of_errors_in_files = 6;
 constexpr int number_of_files           = 20;
 
-class listener : public observer<std::list<std::string>> {
+class listener : public observer<comment_block> {
 public:
-    std::list<std::string> record;
-    std::size_t            counter{};
+    comment_block record;
+    std::size_t   counter{};
 
 protected:
     void
-    data(void const* /*src*/, std::list<std::string> const& nd) final
+    data(void const* /*src*/, comment_block const& nd) final
     {
         counter++;
         record = nd;
