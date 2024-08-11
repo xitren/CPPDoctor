@@ -11,7 +11,7 @@ target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
 include(GoogleTest)
 
-set(TESTS locator_test.cpp parser_test.cpp all_test.cpp)
+file(GLOB TESTS *.cpp)
 
 foreach (file ${TESTS})
     get_filename_component(tgt ${file} NAME_WE)
@@ -22,6 +22,6 @@ foreach (file ${TESTS})
         target_compile_options(${tgt} PRIVATE -Wall -Wextra -Wpedantic -Wc++20-compat -Wno-format-security
                 -Woverloaded-virtual -Wsuggest-override)
     endif ()
-    target_link_libraries(${tgt} PRIVATE ${GEN_LIBRARY_NAME} GTest::gtest GTest::GTest -pthread)
+    target_link_libraries(${tgt} PRIVATE ${CONV_LIBRARY_NAME} GTest::gtest GTest::GTest -pthread)
     gtest_discover_tests(${tgt} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endforeach ()

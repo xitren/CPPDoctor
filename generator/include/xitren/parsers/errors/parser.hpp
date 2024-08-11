@@ -23,7 +23,7 @@ namespace xitren::parsers::errors {
 
 class parser : public comm::observer<std::list<std::string>>, public comm::observable<nlohmann::json> {
     using data_type = std::list<std::string>;
-    using mode      = void (parser::*)(std::string const&);
+    using mode      = void (parser::*)(std::string const);
 
     struct parser_step {
         parser_step()  = delete;
@@ -104,7 +104,7 @@ private:
     steps_vault::iterator steps_iter_ = nullptr;
 
     void
-    find_first(std::string const& line)
+    find_first(std::string const line)
     {
         auto*       begin = steps_.begin();
         auto const& tag   = begin->code_tag;
@@ -120,7 +120,7 @@ private:
     }
 
     void
-    fill(std::string const& line)
+    fill(std::string const line)
     {
         auto*       next = steps_iter_ + 1;
         auto const& tag  = next->code_tag;

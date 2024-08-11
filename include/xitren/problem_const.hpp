@@ -75,17 +75,17 @@ struct problem_const {
         return undefined;
     }
 
-    const std::size_t      index;
-    const std::size_t      short_desc_hash;
-    const std::string_view short_desc;
-    const std::string_view unique_tag;
-    const std::string_view module_desc;
-    const error_type       report;
+    const std::size_t index;
+    const std::size_t short_desc_hash;
+    const std::string short_desc;
+    const std::string unique_tag;
+    const std::string module_desc;
+    const error_type  report;
 #ifndef SHORT_PROBLEM_SOLVERS
-    const std::string_view                because;
-    const std::string_view                long_desc;
-    const std::string_view                documented_at;
-    const std::array<std::string_view, 3> solutions;
+    const std::string                because;
+    const std::string                long_desc;
+    const std::string                documented_at;
+    const std::array<std::string, 3> solutions;
 #endif
     static inline const std::hash<std::string_view> hash;
 };

@@ -38,7 +38,7 @@ public:
     explicit sink(std::string const& name)
     {
         std::ifstream in{name};
-        if (in) {
+        if (in.is_open()) {
             nlohmann::json data = nlohmann::json::parse(in);
             version_            = data["version"];
             version_++;

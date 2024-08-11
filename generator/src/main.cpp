@@ -20,28 +20,32 @@ __ _(_) |_ _ _ ___ _ _
 using json = nlohmann::json;
 
 using namespace xitren::parsers::errors;
-parser       sink{};
-locator_pipe source{};
 
 int
 main(int argv, char const* argc[])
 {
     using namespace std::string_literals;
-    //    if (argv < 2) {
-    //        std::cout << "Not enough parameters!" << std::endl;
-    //        return -1;
-    //    }
-    //    if (strcmp(argc[1], "-o")) {
-    //        std::cout << "Format error! Should be '-o'!" << std::endl;
-    //        return -1;
-    //    }
 
-    source.add_observer(sink);
+    if (argv < 4) {
+        std::cout << "Not enough parameters! Should be 4." << std::endl;
+        return -1;
+    }
+    if (strcmp(argc[1], "-o") != 0) {
+        std::cout << "Format error! Should be '-o'!" << std::endl;
+        return -1;
+    }
 
-    source.data(nullptr, "test.cpp"s);
-    //    for (int i = 3;i < argv;i++) {
-    //        std::string filename{argc[3]};
-    //        source.data(nullptr, filename);
-    //    }
+    sink         file{argc[2]};
+    parser       parser{};
+    locator_pipe source{};
+
+    source.add_observer(parser);
+    parser.add_observer(file);
+
+    for (int i = 3; i < argv; i++) {
+        std::string filename{argc[i]};
+        source.data(nullptr, filename);
+    }
+    source.join();
     return 0;
 }

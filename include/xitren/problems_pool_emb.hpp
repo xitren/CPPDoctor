@@ -48,8 +48,8 @@ private:
     }
     // clang-format on
 
-    static inline const std::hash<std::string_view> hash;
-    std::array<problem_const*, PROBLEMS_COUNTER>    vault_{};
+    static inline const std::hash<std::string_view>    hash;
+    std::array<problem_const const*, PROBLEMS_COUNTER> vault_{};
 };
 
 auto const& problems = problems_pool_emb::instance();

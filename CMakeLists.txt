@@ -6,6 +6,9 @@ set(LIBRARY_NAME
 set(LIBRARY_NAME_HOST
 	cpp_doctor_json_lib
 	)
+set(GEN_LIBRARY_NAME
+	cpp_doctor_gen_lib
+	)
 
 set(GLOBAL_NAMESPACE
 	xitren
@@ -49,6 +52,13 @@ target_include_directories(
 		${LIBRARY_NAME_HOST} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
 target_link_libraries(${LIBRARY_NAME_HOST} INTERFACE nlohmann_json::nlohmann_json patterns_lib fmt::fmt)
 message(STATUS "Adding library project \"${LIBRARY_NAME_HOST}\"")
+
+add_library(${GEN_LIBRARY_NAME} INTERFACE)
+add_library(${GLOBAL_NAMESPACE}::${GEN_LIBRARY_NAME} ALIAS ${GEN_LIBRARY_NAME})
+target_compile_options(${GEN_LIBRARY_NAME} INTERFACE -std=c++20 -Wc++20-compat)
+target_include_directories(
+		${GEN_LIBRARY_NAME} INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>)
+message(STATUS "Adding library project \"${GEN_LIBRARY_NAME}\"")
 
 add_subdirectory(generator)
 add_subdirectory(converter)

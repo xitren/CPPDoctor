@@ -82,7 +82,7 @@ private:
         if ((iter = line.find(middle_tag_)) == std::string::npos) {
             throw std::system_error(errno, std::system_category(), "failed to find formatter '" + middle_tag_ + "' ");
         }
-        current_.push_back(line.substr(iter + middle_tag_.size()));
+        current_.push_back(line);
     }
 };
 

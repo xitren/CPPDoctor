@@ -5,6 +5,7 @@ __ _(_) |_ _ _ ___ _ _
 /_\_\_|\__|_| \___|_||_|
 * @date 28.07.2024
 */
+#pragma once
 
 #include <xitren/comm/observer.hpp>
 #include <xitren/parsers/errors/locator.hpp>
