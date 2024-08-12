@@ -119,27 +119,30 @@ public:
     report(error_type value)
     {
         report_ = value;
+        rehash();
     }
 
     void
     short_desc(std::string_view const& value)
     {
         short_desc_ = value;
+        rehash();
     }
 
     void
     unique_tag(std::string_view const& value)
     {
         unique_tag_ = value;
+        rehash();
     }
 
     void
     module_desc(std::string_view const& value)
     {
         module_desc_ = value;
+        rehash();
     }
 
-#ifndef SHORT_PROBLEM_SOLVERS
     auto&
     because() const
     {
@@ -156,6 +159,18 @@ public:
     documented_at() const
     {
         return documented_at_;
+    }
+
+    auto&
+    filename() const
+    {
+        return filename_;
+    }
+
+    auto&
+    line() const
+    {
+        return line_;
     }
 
     auto&
@@ -180,114 +195,108 @@ public:
     because(std::string_view const& value)
     {
         because_ = value;
+        rehash();
     }
 
     void
     long_desc(std::string_view const& value)
     {
         long_desc_ = value;
+        rehash();
     }
 
     void
     documented_at(std::string_view const& value)
     {
         documented_at_ = value;
-    }
-#else
-    auto&
-    because() const
-    {
-        return dummy;
-    }
-
-    auto&
-    long_desc() const
-    {
-        return dummy;
-    }
-
-    auto&
-    documented_at() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution1() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution2() const
-    {
-        return dummy;
-    }
-
-    auto&
-    solution3() const
-    {
-        return dummy;
+        rehash();
     }
 
     void
-    because(std::string_view const& value)
-    {}
+    filename(std::string_view const& value)
+    {
+        filename_ = value;
+        rehash();
+    }
 
     void
-    long_desc(std::string_view const& value)
-    {}
-
-    void
-    documented_at(std::string_view const& value)
-    {}
-#endif
+    line(std::size_t const& value)
+    {
+        line_ = value;
+        rehash();
+    }
 
     void
     clear_solutions()
     {
-#ifndef SHORT_PROBLEM_SOLVERS
         solutions_number_ = 0;
-#endif
     }
 
     auto&
     add_solution(std::string_view const& desc)
     {
-#ifndef SHORT_PROBLEM_SOLVERS
         if (solutions_number_ >= solutions_.size()) {
             return *this;
         }
         solutions_[solutions_number_++] = desc;
-#endif
+        rehash();
         return *this;
     }
 
-private:
     problem(std::string_view const& short_desc, std::string_view const& unique_tag, std::string_view const& module_desc,
             error_type const& report, std::string_view const& because, std::string_view const& long_desc,
-            std::string_view const& documented_at)
+            std::string_view const& documented_at, std::string_view const& filename, std::size_t const& line)
         : short_desc_{short_desc},
           unique_tag_{unique_tag},
           module_desc_{module_desc},
           report_{report},
           because_{because},
           long_desc_{long_desc},
-          documented_at_{documented_at}
-    {}
+          documented_at_{documented_at},
+          filename_{filename},
+          line_{line}
+    {
+        rehash();
+    }
 
-    std::string short_desc_{};
-    std::string unique_tag_{};
-    std::string module_desc_{};
-    error_type  report_{};
-#ifndef SHORT_PROBLEM_SOLVERS
+    auto&
+    hash() const
+    {
+        return hash_;
+    }
+
+private:
+    void
+    rehash()
+    {
+        std::hash<std::string_view> hasher;
+        hash_ = 0;
+        hash_ ^= hasher(short_desc_);
+        hash_ ^= hasher(unique_tag_);
+        hash_ ^= hasher(module_desc_);
+        hash_ ^= hasher(report_desc(report_));
+        hash_ ^= hasher(because_);
+        hash_ ^= hasher(long_desc_);
+        hash_ ^= hasher(documented_at_);
+        hash_ ^= hasher(solutions_[0]);
+        hash_ ^= hasher(solutions_[1]);
+        hash_ ^= hasher(solutions_[2]);
+        hash_ ^= hasher(filename_);
+        hash_ ^= hasher(std::to_string(line_));
+    }
+
+    std::size_t                hash_;
+    std::string                short_desc_{};
+    std::string                unique_tag_{};
+    std::string                module_desc_{};
+    error_type                 report_{};
     std::string                because_{};
     std::string                long_desc_{};
     std::string                documented_at_{};
     std::size_t                solutions_number_{};
     std::array<std::string, 3> solutions_{{{}, {}, {}}};
-#endif
-    static inline const std::string dummy{};
+    std::string                filename_{};
+    std::size_t                line_{};
 };
 
 }    // namespace xitren

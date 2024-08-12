@@ -30,7 +30,7 @@ target_include_directories(${_target} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                            $<INSTALL_INTERFACE:include>
                            )
-target_link_libraries(${_target} ${GEN_LIBRARY_NAME})
+target_link_libraries(${_target} ${GEN_LIBRARY_NAME} ${LIBRARY_NAME})
 target_compile_features(${_target} PUBLIC cxx_std_20)
 target_compile_options(${_target}
                        PRIVATE

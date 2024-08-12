@@ -9,6 +9,7 @@ __ _(_) |_ _ _ ___ _ _
 #include <nlohmann/json.hpp>
 #include <xitren/comm/observer.hpp>
 #include <xitren/parsers/errors/exceptions.hpp>
+#include <xitren/problems_pool.hpp>
 
 #include <fmt/core.h>
 
@@ -25,7 +26,18 @@ class sink : public comm::observer<nlohmann::json> {
 
 public:
     sink() = delete;
-    ~sink() override { out_ << pool_; }
+    ~sink() override
+    {
+        try {
+            nlohmann::json out_data;
+            out_data[problems_pool::version_key] = pool_.version();
+            for (auto const& item : pool_) {
+                out_data[problems_pool::problems_key].push_back(problems_pool::convert(item.second));
+            }
+            out_ << out_data;
+        } catch (...) {}
+    }
+
     sink&
     operator=(sink const& other)
         = delete;
@@ -35,17 +47,9 @@ public:
     sink(sink const& val) = delete;
     sink(sink&& val)      = delete;
 
-    explicit sink(std::string const& name)
+    explicit sink(std::string const& name) : pool_{name}
     {
-        std::ifstream in{name};
-        if (!in) {
-            throw std::system_error(errno, std::system_category(), "failed to open " + name);
-        }
-        nlohmann::json data = nlohmann::json::parse(in);
-        version_            = data["version"];
-        version_++;
-        pool_["version"] = version_;
-        out_             = std::ofstream{name};
+        out_ = std::ofstream{name};
         if (!out_) {
             throw std::system_error(errno, std::system_category(), "failed to open " + name);
         }
@@ -55,13 +59,12 @@ public:
     data(void const* /*src*/, data_type const& nd) final
     {
         using namespace std::string_literals;
-        pool_["problems"].push_back(nd);
+        pool_.push(nd);
     }
 
 private:
-    int            version_{};
-    nlohmann::json pool_{};
-    std::ofstream  out_;
+    std::ofstream out_;
+    problems_pool pool_;
 
     const std::string another_tag_{"@"};
 };

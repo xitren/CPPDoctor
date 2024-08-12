@@ -93,9 +93,10 @@ create_dummy_file(std::string const& name)
         out << R"(    problems.create_problem("Simple problem example", problem::error_type::error))"
         << R"(.add_because("Because");)" << "\n";
         out << "}" << "\n";
-        out << "" << std::endl;
+        out << "" << "\n";
         counter++;
     }
+    out << "" << std::endl;
     // clang-format on
 }
 

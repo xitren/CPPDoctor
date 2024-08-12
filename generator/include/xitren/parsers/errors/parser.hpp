@@ -74,6 +74,7 @@ public:
         }
         error[problem::filename_key] = nd.filename();
         error[problem::line_key]     = nd.line();
+        std::cout << error << std::endl;
         notify_observers(error);
         for (auto& item : steps_) {
             item.value = ""s;
